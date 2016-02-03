@@ -1,0 +1,40 @@
+#SAMPLE CONFIGURATION FILE FOR SGE CLUSTER
+#MAKE A COPY OF THIS FILE AT "SGECLOUD.CONF"
+#THEN SET YOUR CONFIGURATION THERE
+
+#default_cores: The most common number of cores a single node has in your cluster.
+#This can be overriden in the node specification
+default_cores=NUMBER_OF_DEFAULT_CORES
+
+#Set the name for your cluster.
+cluster_name=mycluster
+
+#Insert a keypair here. This will be used for the cluster's internal ssh traffic.
+cluster_private_key=KEYPRI
+cluster_public_key=KEYPUB
+
+#Set the network CIDR of your cluster. This is the CIDR all your nodes will be found on.
+#**** SUPER ULTRA IMPORTANT: THE CIDR **MUST** BE SPECIFIED IN THE FOLLOWING FORMAT:
+#IP\/SUBNET, FOR EXAMPLE, 0.0.0.0\/24, **NOT** 0.0.0.0/24
+#A SINGLE SLASH WILL CAUSE THE BUILD SCRIPT TO BREAK
+cluster_network_cidr=0.0.0.0\/24
+
+#Specifications of the master node - hostname, core count, and private ip address
+#Cores can be set either as a number, or as "default". If specified as "default" the value from 'default_cores' above will be used here
+master:
+hostname=MASTER-HOSTNAME
+cores=default
+private_ip=MASTER-IP
+
+#Specificaions of an exec node - hostname, core count, and private ip address
+#Cores can be set either as an integer, or as "default". If specified as "default" the value from 'default_cores' above will be used here
+#Multiple exec specifications go here... duplicate the paragraph to add more exec specifications.
+exec:
+hostname=EXEC1-HOSTNAME
+cores=default
+private_ip=EXEC1-IP
+
+exec:
+hostname=EXEC2-HOSTNAME
+cores=default
+private_ip=EXEC2-IP

@@ -1,0 +1,53 @@
+This is a series of puppet manifests & bash scripts that will provision an SGE cluster.
+
+STEPS TO NEW DEPLOYMENT:
+1) Make a copy the sgecloud.conf.sample at sgecloud.conf
+
+2) Specify the settings of the SGE cluster in sgecloud.conf file.
+The sgecloud.conf file has the following settings at this time:
+-default_cores: The typical/most common number of cores used in the cluster. If all or almost all of the nodes have the same number of cores, specify that number here. If not, just put any number in. I'm working on changing this so that this parameter can be left out entirely if desired, but I'm not there yet
+-cluster_name: The name of the cluster. This is used in configurations and in the name of the sgemaster and sgeexecd services
+-cluster_private_key and cluster_public_key: Insert a keypair to be used to control SSH traffic within the cluster
+-cluster_network_cidr: Specify the CIDR of the subnet the nodes are all located on. Note that the syntax of this must replace the usual / with a \/. Write it as "0.0.0.0\/24", not "0.0.0.0/24".
+-A definition file for the master node, listing its number of cores (either specify a number, or just write 'default' if it's equal to the number given in default_cores), its private IP, and its hostname.
+-Similar definition files for the exec nodes
+
+3) Run the build.sh file. This will populate all the necessary qconf files with the settings given in sgecloud.conf.
+
+4) Transfer ALL the files in this repo to each and every one of the nodes. For now, these files have to be placed in /home/centos for the deployment to work.
+
+5) On the master node, ensure puppet is installed, and that the puppetlabs-stdlib module is installed.
+
+6) Run the master node setup manifest: master.pp
+
+7) Repeat steps 4 and 5 for each exec node, but with exec.pp instead.
+
+8) If you want to use the manifests to deploy another environment, the erase.sh script eliminates the changes made by build.sh and returns the directory to its original state.
+
+TO ADD A NEW EXEC NODE TO AN EXISTING CLUSTER:
+1) Update sgecloud.conf to account for the new exec node
+
+2) Run the build.sh file to populate all the new files. NOTE: if the built files from the original deployment are still there, it's recommended to run erase.sh first and then build.sh. 
+
+3) Transfer ALL the files in this repo to both the master node (overwritting any old ones), AND to the new exec node you intend to deploy. Just like in the original deployment, ensure the files go into the/home/centos directory on each node.
+
+4) On the master node, run the following command:
+/home/centos/add-node.sh <HOSTNAME OF NEW EXEC> <PRIVATE IP OF NEW EXEC>
+... with the hostname and private ip of the new exec node to be added as the parameters, in that order.
+NOTE: In order for this to work, the new node must be ready to go, as this script WILL fail if the new node isn't pingable.
+
+5) Run exec.pp on the exec node.
+
+TO REMOVE AN EXEC NODE FROM AN EXISTING CLUSTER:
+1) Update sgecloud.conf to remove the node to be deleted
+
+2) Run the build.sh file to populate all the new files. NOTE: if the built files from the original deployment are still there, it's recommended to run erase.sh first and then build.sh.
+
+3) Transfer ALL the files in this repo to the master node (overwritting any old ones). Ensure files go into the /home/centos directory.
+
+4) On the master node, run the following command:
+/home/centos/remove-node.sh <HOSTNAME OF DELETED EXEC> <PRIVATE IP OF DELETED EXEC>
+... with the hostname and private ip of the new exec node to be deleted as the parameters, in that order.
+
+Known issues:
+-To prevent dependency issues, the manifest runs a system update on each node before installing SGE. If the node hasn't been updated in a very long time, this update will naturally take a while, and sometimes puppet will timeout. If it's been a while since last update, consider updating the node manually before running the manifest.
